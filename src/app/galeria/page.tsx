@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -87,10 +88,11 @@ export default async function Page({
                 href={`/persona/${p.id}`}
                 className="block"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={p.photo_url ?? undefined}
+                <Image
+                  src={p.photo_url ?? ""}
                   alt=""
+                  width={400}
+                  height={400}
                   className="aspect-square w-full rounded-xl object-cover"
                 />
                 <p className="mt-1.5 text-sm font-semibold text-[#14212e]">

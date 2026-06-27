@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -85,10 +86,11 @@ export default async function Page({
           </div>
 
           {c.photo_url && (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
+            <Image
               src={c.photo_url}
               alt={tr("person.photoAlt", { name: c.name })}
+              width={800}
+              height={600}
               className="mt-4 max-h-80 w-full rounded-xl object-cover ring-1 ring-slate-200"
             />
           )}

@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import { useState } from "react";
 
 type Tab = "buscar" | "duplicados" | "conciliacion";
@@ -97,7 +97,7 @@ function Buscar() {
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-300 hover:border-[#2563a8]">
           {preview ? (
-            <img src={preview} alt="" className="h-full w-full object-cover" />
+            <Image unoptimized src={preview} alt="" width={96} height={96} className="h-full w-full object-cover" />
           ) : (
             <span className="text-center text-xs text-slate-400">📷<br />Subir</span>
           )}
@@ -113,7 +113,7 @@ function Buscar() {
           {results.map((c, i) => (
             <li key={i} className="flex gap-3 rounded-lg border border-[#e6ecf2] p-2">
               {(c.image_url as string) && (
-                <img src={c.image_url as string} alt="" className="h-14 w-14 rounded-md object-cover" />
+                <Image src={c.image_url as string} alt="" width={56} height={56} className="h-14 w-14 rounded-md object-cover" />
               )}
               <div className="min-w-0 text-sm">
                 <div className="truncate font-medium text-[#14212e]">{(c.person_name as string) || "—"}</div>
@@ -180,11 +180,11 @@ function Duplicados() {
           <ul className="mt-2 space-y-2">
             {(res.duplicates || []).map((p, i) => (
               <li key={i} className="flex items-center gap-3 rounded-lg border border-[#e6ecf2] p-2">
-                {(p.a_image as string) && <img src={p.a_image as string} alt="" className="h-12 w-12 rounded-md object-cover" />}
+                {(p.a_image as string) && <Image src={p.a_image as string} alt="" width={48} height={48} className="h-12 w-12 rounded-md object-cover" />}
                 <span className="text-sm text-[#14212e]">
                   {(p.a_name as string) || "—"} <span className="text-slate-400">↔</span> {(p.b_name as string) || "—"}
                 </span>
-                {(p.b_image as string) && <img src={p.b_image as string} alt="" className="h-12 w-12 rounded-md object-cover" />}
+                {(p.b_image as string) && <Image src={p.b_image as string} alt="" width={48} height={48} className="h-12 w-12 rounded-md object-cover" />}
                 <span className="ml-auto rounded-full bg-[#fdf0e9] px-2 py-0.5 text-xs font-semibold text-[#c0512c]">
                   {pct(p.score as number)}%
                 </span>
@@ -264,7 +264,7 @@ function Conciliacion() {
                     {records.map((r, j) => (
                       <div key={j} className="w-28">
                         {(r.image_url as string) ? (
-                          <img src={r.image_url as string} alt="" className="h-28 w-28 rounded-md object-cover" />
+                          <Image src={r.image_url as string} alt="" width={112} height={112} className="h-28 w-28 rounded-md object-cover" />
                         ) : (
                           <div className="flex h-28 w-28 items-center justify-center rounded-md bg-slate-100 text-xs text-slate-400">
                             sin imagen

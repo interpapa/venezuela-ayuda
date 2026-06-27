@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import StatusBadge from "@/components/StatusBadge";
@@ -26,10 +27,11 @@ export default function CheckinCard({ c }: { c: PublicCheckin }) {
     >
       <div className="flex items-center gap-3.5">
         {c.photo_url ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
+          <Image
             src={c.photo_url}
             alt=""
+            width={48}
+            height={48}
             className="h-12 w-12 shrink-0 rounded-full object-cover"
           />
         ) : (

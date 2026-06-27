@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { submitCheckin, type ActionState } from "@/app/actions";
@@ -197,10 +198,11 @@ export default function CheckinForm({
               {frCands.map((c, i) => (
                 <li key={i} className="rounded-lg border border-[#f0c9bb] bg-white p-2">
                   {c.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={c.image_url}
                       alt=""
+                      width={120}
+                      height={120}
                       className="h-20 w-full rounded-md object-cover"
                     />
                   ) : (

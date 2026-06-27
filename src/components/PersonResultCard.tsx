@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import StatusBadge from "@/components/StatusBadge";
@@ -29,10 +30,11 @@ export default function PersonResultCard({ p }: { p: MergedPerson }) {
     <div className="min-w-0 rounded-2xl border border-[#e6ecf2] bg-white p-4">
       <div className="flex items-center gap-3.5">
         {p.photoUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
+          <Image
             src={p.photoUrl}
             alt=""
+            width={48}
+            height={48}
             className="h-12 w-12 shrink-0 rounded-full object-cover"
           />
         ) : (
