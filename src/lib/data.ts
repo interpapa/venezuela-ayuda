@@ -163,7 +163,11 @@ const loadHospitalRegistryRows = unstable_cache(
   async (): Promise<string[][]> => {
     try {
       const res = await fetch(HOSPITAL_REGISTRY_CSV_URL, {
-        headers: { "User-Agent": "Mozilla/5.0" },
+        // `Accept-Encoding: identity` asks for an UNCOMPRESSED response. With no
+        // gzip/br decompression transform, aborting/interrupting the stream can't
+        // trip undici's `controller[kState].transformAlgorithm is not a function`
+        // bug (Node 22.x). Timeout still bounds a hung connection.
+        headers: { "User-Agent": "Mozilla/5.0", "Accept-Encoding": "identity" },
         cache: "no-store",
         signal: AbortSignal.timeout(8000),
       });
@@ -251,7 +255,9 @@ const fetchMissingPersonsItems = unstable_cache(
       const url =
         `${MISSING_PERSONS_API}?q=${encodeURIComponent(term)}&page=1&pageSize=${limit}`;
       const res = await fetch(url, {
-        headers: { "User-Agent": "Mozilla/5.0" },
+        // Uncompressed response (see hospital-registry note): avoids undici's
+        // decompression-transform crash when an aborted/interrupted stream is torn down.
+        headers: { "User-Agent": "Mozilla/5.0", "Accept-Encoding": "identity" },
         cache: "no-store",
         signal: AbortSignal.timeout(8000),
       });
