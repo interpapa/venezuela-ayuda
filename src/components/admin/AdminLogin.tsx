@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { adminSignIn, adminSignUp, type AuthState } from "@/app/admin/actions";
+import { useTranslations } from "next-intl";
 
 function SubmitBtn({ children }: { children: React.ReactNode }) {
   const { pending } = useFormStatus();
@@ -34,6 +35,7 @@ const TABS = [
 type TabKey = (typeof TABS)[number]["key"];
 
 export default function AdminLogin() {
+  const t = useTranslations("admin");
   const [tab, setTab] = useState<TabKey>("signin");
   const [signInState, signInAction] = useActionState<AuthState, FormData>(
     adminSignIn,
@@ -97,7 +99,7 @@ export default function AdminLogin() {
             name="email"
             required
             autoComplete="email"
-            placeholder="tu@correo.com"
+            placeholder={t("login.email_placeholder")}
             className="w-full rounded-xl border border-[#e6ecf2] px-3.5 py-3 text-base text-[#14212e] outline-none transition focus:border-[#2563a8]"
           />
         </label>

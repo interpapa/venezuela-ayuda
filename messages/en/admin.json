@@ -1,0 +1,58 @@
+{
+  "back_to_panel": "← Back to panel",
+  "admin_panel": "🛡️ Administration Panel",
+  "super_admin": "super-admin",
+  "nav": {
+    "reconocimiento": "Recognition",
+    "ingesta": "Ingestion",
+    "colaboradores": "Partners",
+    "administradores": "Administrators",
+    "cerrar_sesion": "Log out"
+  },
+  "tabs": {
+    "centros": "Collection centers",
+    "danados": "Damaged buildings",
+    "moderacion": "Moderation"
+  },
+  "filters": {
+    "todos": "All",
+    "pendientes": "Pending",
+    "verificados": "Verified",
+    "ocultos": "Hidden",
+    "sin_verificar": "Unverified",
+    "personas": "People",
+    "solicitudes": "Requests",
+    "ofertas": "Offers"
+  },
+  "empty_state": "Nothing in this view.",
+  "descriptions": {
+    "centros": "Collection centers sent by the public arrive <strong>unverified</strong> and will not be displayed until approved. Verify to publish them.",
+    "danados": "Reports of damaged buildings from the community. <strong>Verify</strong> marks the report as confirmed by an administrator.",
+    "moderacion_title": "What you are reviewing:",
+    "moderacion": "the latest posts from the public (people, requests and offers). Here you search for and remove fake content or spam. <strong>Hide</strong> removes it from public view without deleting it; <strong>Delete</strong> removes it permanently."
+  },
+  "pages": {
+    "reconocimiento": {
+      "title": "Facial recognition",
+      "desc": "Search for people by face, clean up our duplicates database and reconcile identities across platforms. Assistive: always requires human verification."
+    },
+    "ingesta": {
+      "title": "Batch ingestion",
+      "desc": "Load an external dump (JSON, CSV or SQL). Each row is validated and inserted via the same audited path as the API; SQL is never executed."
+    },
+    "colaboradores": {
+      "title": "Partners",
+      "desc": "Sites that publish reports to the hub via the API. Each one receives a key (shown only once when created). Upon revocation, the key may continue to work for ~1 minute (authentication cache)."
+    },
+    "admins": {
+      "title": "Administrators"
+    }
+  },
+  "batch": {
+    "formato": "Format",
+    "resultado": "Result"
+  },
+  "login": {
+    "email_placeholder": "you@email.com"
+  }
+}

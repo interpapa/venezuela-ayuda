@@ -23,6 +23,7 @@ const NAMESPACES = [
   "gallery",
   "risk",
   "alerts",
+  "admin",
 ] as const;
 
 // No i18n routing: the active locale comes from a cookie (set by the language

@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import AdminManager from "@/components/admin/AdminManager";
 import { getAdminSession, listAdmins } from "@/lib/admin";
 
+import { getTranslations } from "next-intl/server";
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminsPage() {
@@ -12,6 +14,7 @@ export default async function AdminsPage() {
   const email = session.email;
 
   const admins = await listAdmins();
+  const t = await getTranslations("admin");
 
   return (
     <>
@@ -21,10 +24,10 @@ export default async function AdminsPage() {
           href="/admin"
           className="inline-flex items-center gap-1 text-sm font-medium text-[#2563a8] hover:underline"
         >
-          ← Volver al panel
+          {t("back_to_panel")}
         </Link>
         <h1 className="mt-3 text-xl font-bold text-[#14212e]">
-          Administradores
+          {t("pages.admins.title")}
         </h1>
         <div className="mt-5">
           <AdminManager admins={admins} currentEmail={email} />

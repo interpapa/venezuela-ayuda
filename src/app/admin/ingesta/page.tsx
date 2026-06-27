@@ -4,11 +4,15 @@ import Header from "@/components/Header";
 import BatchIngest from "@/components/admin/BatchIngest";
 import { getAdminSession } from "@/lib/admin";
 
+import { getTranslations } from "next-intl/server";
+
 export const dynamic = "force-dynamic";
 
 export default async function IngestaPage() {
   const session = await getAdminSession();
   if (!session?.isSuper) redirect("/admin"); // super-admin only
+
+  const t = await getTranslations("admin");
 
   return (
     <>
@@ -18,12 +22,11 @@ export default async function IngestaPage() {
           href="/admin"
           className="inline-flex items-center gap-1 text-sm font-medium text-[#2563a8] hover:underline"
         >
-          ← Volver al panel
+          {t("back_to_panel")}
         </Link>
-        <h1 className="mt-3 text-xl font-bold text-[#14212e]">Ingesta en batch</h1>
+        <h1 className="mt-3 text-xl font-bold text-[#14212e]">{t("pages.ingesta.title")}</h1>
         <p className="mt-1 text-sm text-[#5b6b7b]">
-          Carga un volcado externo (JSON, CSV o SQL). Cada fila se valida y se
-          inserta por la misma vía auditada que la API; el SQL nunca se ejecuta.
+          {t("pages.ingesta.desc")}
         </p>
         <div className="mt-5">
           <BatchIngest />

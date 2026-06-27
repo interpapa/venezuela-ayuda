@@ -11,6 +11,7 @@ import {
   listCollectionCentersAdmin,
 } from "@/lib/admin";
 import { adminSignOut } from "@/app/admin/actions";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,7 @@ export default async function AdminPage({
 }: {
   searchParams: Promise<{ tab?: string; estado?: string }>;
 }) {
+  const t = await getTranslations("admin");
   const session = await getAdminSession();
 
   if (!session) {
@@ -89,31 +91,31 @@ export default async function AdminPage({
   const pendingDamaged = damaged.filter((d) => !d.verified_at && !d.hidden).length;
 
   const TABS: Array<{ value: AdminTab; label: string; badge?: number }> = [
-    { value: "centros", label: "Centros de acopio", badge: pendingCenters || undefined },
-    { value: "danados", label: "Edificios dañados", badge: pendingDamaged || undefined },
-    { value: "moderacion", label: "Moderación", badge: mod.length || undefined },
+    { value: "centros", label: t("tabs.centros"), badge: pendingCenters || undefined },
+    { value: "danados", label: t("tabs.danados"), badge: pendingDamaged || undefined },
+    { value: "moderacion", label: t("tabs.moderacion"), badge: mod.length || undefined },
   ];
 
   // Per-tab status/type sub-filters. Each option carries a predicate; we filter
   // the already-fetched list and show a count so admins see how much is pending.
   const centerOpts = [
-    { key: undefined, label: "Todos", test: () => true },
-    { key: "pendientes", label: "Pendientes", test: (c: typeof centers[number]) => !c.verified && !c.hidden },
-    { key: "verificados", label: "Verificados", test: (c: typeof centers[number]) => c.verified && !c.hidden },
-    { key: "ocultos", label: "Ocultos", test: (c: typeof centers[number]) => c.hidden },
+    { key: undefined, label: t("filters.todos"), test: () => true },
+    { key: "pendientes", label: t("filters.pendientes"), test: (c: typeof centers[number]) => !c.verified && !c.hidden },
+    { key: "verificados", label: t("filters.verificados"), test: (c: typeof centers[number]) => c.verified && !c.hidden },
+    { key: "ocultos", label: t("filters.ocultos"), test: (c: typeof centers[number]) => c.hidden },
   ];
   const damagedOpts = [
-    { key: undefined, label: "Todos", test: () => true },
-    { key: "pendientes", label: "Sin verificar", test: (d: typeof damaged[number]) => !d.verified_at && !d.hidden },
-    { key: "verificados", label: "Verificados", test: (d: typeof damaged[number]) => !!d.verified_at && !d.hidden },
-    { key: "ocultos", label: "Ocultos", test: (d: typeof damaged[number]) => d.hidden },
+    { key: undefined, label: t("filters.todos"), test: () => true },
+    { key: "pendientes", label: t("filters.sin_verificar"), test: (d: typeof damaged[number]) => !d.verified_at && !d.hidden },
+    { key: "verificados", label: t("filters.verificados"), test: (d: typeof damaged[number]) => !!d.verified_at && !d.hidden },
+    { key: "ocultos", label: t("filters.ocultos"), test: (d: typeof damaged[number]) => d.hidden },
   ];
   const modOpts = [
-    { key: undefined, label: "Todos", test: () => true },
-    { key: "personas", label: "Personas", test: (m: typeof mod[number]) => m.table === "checkins" },
-    { key: "solicitudes", label: "Solicitudes", test: (m: typeof mod[number]) => m.table === "help_requests" },
-    { key: "ofertas", label: "Ofertas", test: (m: typeof mod[number]) => m.table === "help_offers" },
-    { key: "ocultos", label: "Ocultos", test: (m: typeof mod[number]) => m.hidden },
+    { key: undefined, label: t("filters.todos"), test: () => true },
+    { key: "personas", label: t("filters.personas"), test: (m: typeof mod[number]) => m.table === "checkins" },
+    { key: "solicitudes", label: t("filters.solicitudes"), test: (m: typeof mod[number]) => m.table === "help_requests" },
+    { key: "ofertas", label: t("filters.ofertas"), test: (m: typeof mod[number]) => m.table === "help_offers" },
+    { key: "ocultos", label: t("filters.ocultos"), test: (m: typeof mod[number]) => m.hidden },
   ];
 
   const centersActive = centerOpts.find((o) => o.key === estado) ?? centerOpts[0];
@@ -130,13 +132,13 @@ export default async function AdminPage({
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e6ecf2] bg-white p-4">
           <div className="min-w-0">
             <h1 className="text-lg font-bold text-[#14212e]">
-              🛡️ Panel de administración
+              {t("admin_panel")}
             </h1>
             <p className="mt-0.5 flex items-center gap-2 truncate text-sm text-[#5b6b7b]">
               {email}
               {isSuper && (
                 <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">
-                  super-admin
+                  {t("super_admin")}
                 </span>
               )}
             </p>
@@ -148,25 +150,25 @@ export default async function AdminPage({
                   href="/admin/reconocimiento"
                   className="rounded-lg border border-[#e6ecf2] px-3 py-2 text-sm font-medium text-[#14212e] transition hover:bg-slate-50"
                 >
-                  Reconocimiento
+                  {t("nav.reconocimiento")}
                 </Link>
                 <Link
                   href="/admin/ingesta"
                   className="rounded-lg border border-[#e6ecf2] px-3 py-2 text-sm font-medium text-[#14212e] transition hover:bg-slate-50"
                 >
-                  Ingesta
+                  {t("nav.ingesta")}
                 </Link>
                 <Link
                   href="/admin/colaboradores"
                   className="rounded-lg border border-[#e6ecf2] px-3 py-2 text-sm font-medium text-[#14212e] transition hover:bg-slate-50"
                 >
-                  Colaboradores
+                  {t("nav.colaboradores")}
                 </Link>
                 <Link
                   href="/admin/admins"
                   className="rounded-lg border border-[#e6ecf2] px-3 py-2 text-sm font-medium text-[#14212e] transition hover:bg-slate-50"
                 >
-                  Administradores
+                  {t("nav.administradores")}
                 </Link>
               </>
             )}
@@ -175,7 +177,7 @@ export default async function AdminPage({
                 type="submit"
                 className="rounded-lg border border-[#e6ecf2] px-3 py-2 text-sm font-medium text-[#5b6b7b] transition hover:bg-slate-50"
               >
-                Cerrar sesión
+                {t("nav.cerrar_sesion")}
               </button>
             </form>
           </div>
@@ -213,12 +215,9 @@ export default async function AdminPage({
         {tab === "centros" && (
           <section>
             <SubFilters tab="centros" estado={estado} opts={centerOpts} data={centers} />
-            <p className="mb-3 text-xs text-[#8190a0]">
-              Centros enviados por el público entran <strong>sin verificar</strong> y no
-              se muestran hasta aprobarlos. Verifica para publicarlos.
-            </p>
+            <p className="mb-3 text-xs text-[#8190a0]" dangerouslySetInnerHTML={{ __html: t.raw("descriptions.centros") }} />
             {centersList.length === 0 ? (
-              <p className="mt-3 text-sm text-[#8190a0]">Nada en esta vista.</p>
+              <p className="mt-3 text-sm text-[#8190a0]">{t("empty_state")}</p>
             ) : (
               <div className="space-y-3">
                 {centersList.map((c) => (
@@ -232,12 +231,9 @@ export default async function AdminPage({
         {tab === "danados" && (
           <section>
             <SubFilters tab="danados" estado={estado} opts={damagedOpts} data={damaged} />
-            <p className="mb-3 text-xs text-[#8190a0]">
-              Reportes de edificios dañados de la comunidad. <strong>Verificar</strong>{" "}
-              marca el reporte como confirmado por un administrador.
-            </p>
+            <p className="mb-3 text-xs text-[#8190a0]" dangerouslySetInnerHTML={{ __html: t.raw("descriptions.danados") }} />
             {damagedList.length === 0 ? (
-              <p className="mt-3 text-sm text-[#8190a0]">Nada en esta vista.</p>
+              <p className="mt-3 text-sm text-[#8190a0]">{t("empty_state")}</p>
             ) : (
               <div className="space-y-3">
                 {damagedList.map((d) => (
@@ -252,14 +248,10 @@ export default async function AdminPage({
           <section>
             <SubFilters tab="moderacion" estado={estado} opts={modOpts} data={mod} />
             <div className="mb-3 rounded-xl border border-[#e6ecf2] bg-[#f7fafd] p-3 text-xs text-[#5b6b7b]">
-              <strong className="text-[#14212e]">Qué estás revisando:</strong> las
-              últimas publicaciones del público (personas, solicitudes y ofertas).
-              Aquí se busca y se retira contenido falso o spam. <strong>Ocultar</strong>{" "}
-              lo quita de la vista pública sin borrarlo; <strong>Eliminar</strong> lo
-              borra definitivamente.
+              <strong className="text-[#14212e]">{t("descriptions.moderacion_title")}</strong> <span dangerouslySetInnerHTML={{ __html: t.raw("descriptions.moderacion") }} />
             </div>
             {modList.length === 0 ? (
-              <p className="mt-3 text-sm text-[#8190a0]">Nada en esta vista.</p>
+              <p className="mt-3 text-sm text-[#8190a0]">{t("empty_state")}</p>
             ) : (
               <div className="space-y-3">
                 {modList.map((m) => (

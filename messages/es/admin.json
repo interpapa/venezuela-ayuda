@@ -1,0 +1,58 @@
+{
+  "back_to_panel": "← Volver al panel",
+  "admin_panel": "🛡️ Panel de administración",
+  "super_admin": "super-admin",
+  "nav": {
+    "reconocimiento": "Reconocimiento",
+    "ingesta": "Ingesta",
+    "colaboradores": "Colaboradores",
+    "administradores": "Administradores",
+    "cerrar_sesion": "Cerrar sesión"
+  },
+  "tabs": {
+    "centros": "Centros de acopio",
+    "danados": "Edificios dañados",
+    "moderacion": "Moderación"
+  },
+  "filters": {
+    "todos": "Todos",
+    "pendientes": "Pendientes",
+    "verificados": "Verificados",
+    "ocultos": "Ocultos",
+    "sin_verificar": "Sin verificar",
+    "personas": "Personas",
+    "solicitudes": "Solicitudes",
+    "ofertas": "Ofertas"
+  },
+  "empty_state": "Nada en esta vista.",
+  "descriptions": {
+    "centros": "Centros enviados por el público entran <strong>sin verificar</strong> y no se muestran hasta aprobarlos. Verifica para publicarlos.",
+    "danados": "Reportes de edificios dañados de la comunidad. <strong>Verificar</strong> marca el reporte como confirmado por un administrador.",
+    "moderacion_title": "Qué estás revisando:",
+    "moderacion": "las últimas publicaciones del público (personas, solicitudes y ofertas). Aquí se busca y se retira contenido falso o spam. <strong>Ocultar</strong> lo quita de la vista pública sin borrarlo; <strong>Eliminar</strong> lo borra definitivamente."
+  },
+  "pages": {
+    "reconocimiento": {
+      "title": "Reconocimiento facial",
+      "desc": "Buscar personas por rostro, depurar nuestra base de duplicados y conciliar identidades entre plataformas. Asistivo: siempre requiere verificación humana."
+    },
+    "ingesta": {
+      "title": "Ingesta en batch",
+      "desc": "Carga un volcado externo (JSON, CSV o SQL). Cada fila se valida y se inserta por la misma vía auditada que la API; el SQL nunca se ejecuta."
+    },
+    "colaboradores": {
+      "title": "Colaboradores",
+      "desc": "Sitios que publican reportes en el hub vía la API. Cada uno recibe una key (se muestra una sola vez al crearla). Al revocar, la key puede seguir funcionando hasta ~1 minuto (cache de autenticación)."
+    },
+    "admins": {
+      "title": "Administradores"
+    }
+  },
+  "batch": {
+    "formato": "Formato",
+    "resultado": "Resultado"
+  },
+  "login": {
+    "email_placeholder": "tu@correo.com"
+  }
+}

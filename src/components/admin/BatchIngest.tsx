@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ingestBatch } from "@/app/admin/actions";
+import { useTranslations } from "next-intl";
 
 type Format = "auto" | "json" | "csv" | "sql";
 type Outcome = {
@@ -18,6 +19,7 @@ export default function BatchIngest() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Outcome | null>(null);
+  const t = useTranslations("admin");
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,7 +60,7 @@ export default function BatchIngest() {
         </label>
 
         <div className="mt-3">
-          <span className="mb-1.5 block text-sm font-medium text-[#14212e]">Formato</span>
+          <span className="mb-1.5 block text-sm font-medium text-[#14212e]">{t("batch.formato")}</span>
           <div className="flex flex-wrap gap-2">
             {(["auto", "json", "csv", "sql"] as Format[]).map((f) => (
               <button
@@ -110,7 +112,7 @@ export default function BatchIngest() {
 
       {result && (
         <div className="rounded-2xl border border-[#e6ecf2] bg-white p-4">
-          <p className="text-sm font-semibold text-[#14212e]">Resultado</p>
+          <p className="text-sm font-semibold text-[#14212e]">{t("batch.resultado")}</p>
           <div className="mt-2 flex flex-wrap gap-2 text-sm">
             <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 font-bold text-emerald-700">
               {result.accepted ?? 0} aceptados
