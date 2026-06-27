@@ -18,6 +18,9 @@ concurrency:
   group: dedup
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   dedup:
     runs-on: ubuntu-latest

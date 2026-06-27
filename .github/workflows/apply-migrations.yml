@@ -19,6 +19,9 @@ concurrency:
   group: apply-migrations-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   apply:
     runs-on: ubuntu-latest
