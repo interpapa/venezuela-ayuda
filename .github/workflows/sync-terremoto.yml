@@ -23,5 +23,6 @@ jobs:
       - name: Run Sync Script
         run: node scripts/sync-terremoto.mjs
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ github.ref_name == 'staging' && secrets.NEXT_PUBLIC_SUPABASE_URL_STAGING || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ github.ref_name == 'staging' && secrets.SUPABASE_SECRET_KEY_STAGING || secrets.SUPABASE_SECRET_KEY }}
+

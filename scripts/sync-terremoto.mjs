@@ -1,11 +1,13 @@
 // Syncs structural damage reports from terremotovenezuela.com API.
-// Idempotent: clears prior feed-sourced rows (external_id like 'terremoto_%')
-// and re-inserts.
+// Idempotent: upserts records safely via PostgREST resolution=merge-duplicates
+// based on (source, external_id) unique constraint.
 
 import { readFileSync } from "node:fs";
 
 const DRY = process.argv.includes("--dry");
 const API_URL = "https://api.terremotovenezuela.com/api/v1/reports";
+
+const VALID_SEVERITIES = new Set(['CRACKS', 'PARTIAL', 'COLLAPSE_RISK', 'COLLAPSED']);
 
 async function fetchExternalReports() {
   try {
@@ -17,24 +19,35 @@ async function fetchExternalReports() {
     const out = [];
     for (const r of records) {
       if (!r.latitude || !r.longitude) continue;
+      
+      const lat = parseFloat(r.latitude);
+      const lng = parseFloat(r.longitude);
+      if (isNaN(lat) || isNaN(lng)) continue;
+      
+      const originalId = r.id || r._id;
+      if (!originalId) {
+        console.warn("Skipping record without valid external ID:", r);
+        continue;
+      }
+
       out.push({
-        external_id: `terremoto_${r.id || r._id || Math.random().toString(36).slice(2)}`,
-        place_name: r.title || r.name || r.place_name || "Reporte externo",
-        description: r.description || r.details || null,
-        severity: r.severity || "PARTIAL",
-        city: r.city || null,
-        latitude: parseFloat(r.latitude),
-        longitude: parseFloat(r.longitude),
+        external_id: `terremoto_${originalId}`,
+        place_name: String(r.title || r.name || r.place_name || "Reporte externo"),
+        description: typeof r.description === 'string' ? r.description : (typeof r.details === 'string' ? r.details : null),
+        severity: VALID_SEVERITIES.has(r.severity) ? r.severity : "PARTIAL",
+        city: typeof r.city === 'string' ? r.city : null,
+        latitude: lat,
+        longitude: lng,
         status: "OPEN",
         source: "terremotovenezuela.com",
-        source_url: r.url || `https://terremotovenezuela.com/`,
-        dedup_key: `${parseFloat(r.latitude).toFixed(4)},${parseFloat(r.longitude).toFixed(4)}`,
+        source_url: typeof r.url === 'string' ? r.url : `https://terremotovenezuela.com/`,
+        dedup_key: `${lat.toFixed(4)},${lng.toFixed(4)}`,
       });
     }
     return out;
   } catch (err) {
     console.error("Error fetching from Terremoto API:", err.message);
-    return [];
+    process.exit(1); // Fail loudly so CI catches API outages
   }
 }
 
@@ -42,7 +55,7 @@ const rows = await fetchExternalReports();
 console.log(`Fetched ${rows.length} valid rows from terremotovenezuela.com`);
 
 if (DRY) {
-  console.log("DRY RUN: ", rows[0]);
+  console.log("DRY RUN sample: ", rows[0]);
   process.exit(0);
 }
 
@@ -64,12 +77,14 @@ const H = { apikey: KEY, Authorization: `Bearer ${KEY}`, "Content-Type": "applic
 
 if (!REST) { console.error("Missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SECRET_KEY"); process.exit(1); }
 
-const del = await fetch(`${REST}/damaged_reports?external_id=like.terremoto_*`,
-  { method: "DELETE", headers: { ...H, Prefer: "return=minimal" } });
-if (!del.ok) { console.error(`delete failed: ${del.status} ${await del.text()}`); process.exit(1); }
-
-const ins = await fetch(`${REST}/damaged_reports`,
-  { method: "POST", headers: { ...H, Prefer: "return=minimal" }, body: JSON.stringify(rows) });
+// Perform UPSERT via resolution=merge-duplicates.
+// Requires unique constraint on (source, external_id).
+const ins = await fetch(`${REST}/damaged_reports?on_conflict=source,external_id`,
+  { 
+    method: "POST", 
+    headers: { ...H, Prefer: "return=minimal, resolution=merge-duplicates" }, 
+    body: JSON.stringify(rows) 
+  });
 if (!ins.ok) { console.error(`insert failed: ${ins.status} ${await ins.text()}`); process.exit(1); }
 
 console.log(`Successfully synced ${rows.length} rows to ${URL_}`);
