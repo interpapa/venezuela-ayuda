@@ -160,6 +160,7 @@ export async function searchHelpRequests(params: {
 // in the official roster. The gviz CSV endpoint works without publishing the
 // sheet; on any failure we return [] so the rest of the search page is unaffected.
 const HOSPITAL_REGISTRY_CSV_URL =
+  process.env.HOSPITAL_REGISTRY_CSV_URL ||
   "https://docs.google.com/spreadsheets/d/1fRQ3zEkIFMV2SYEjQiCuwewKAJDSixRepzBUf3ZFqf4/gviz/tq?tqx=out:csv&gid=963077964";
 
 // Fetch + parse the whole sheet ONCE and cache the parsed ROWS (not the response
@@ -220,8 +221,11 @@ export async function searchHospitalRegistry(params: {
   const iUpdated = col("fecha_actualizacion");
   const iSource = col("fuente");
 
-  const get = (row: string[], i: number) =>
-    i >= 0 && i < row.length ? row[i].trim() : "";
+  const get = (row: string[], i: number) => {
+    const val = i >= 0 && i < row.length ? row[i].trim() : "";
+    // Truncate to avoid extremely long strings breaking the UI
+    return val.substring(0, 500);
+  };
 
   const limit = params.limit ?? 40;
   const out: HospitalRegistryMatch[] = [];
@@ -257,6 +261,7 @@ export async function searchHospitalRegistry(params: {
 // trigger. We keep only the privacy-safe fields (no `contacto`). Any failure —
 // the source 429s under load — returns [] so the rest of the page is unaffected.
 const MISSING_PERSONS_API =
+  process.env.MISSING_PERSONS_API_URL ||
   "https://desaparecidos-terremoto-api.theempire.tech/api/personas";
 
 // Per-query fetch, but we cache the RESULT (unstable_cache) and fetch `no-store`
@@ -300,10 +305,25 @@ export async function searchMissingPersonsApi(params: {
   const out: MissingPersonMatch[] = [];
   for (const raw of items) {
     const p = raw as Record<string, unknown>;
-    const name = typeof p.nombre === "string" ? p.nombre.trim() : "";
+    const sanitizeStr = (v: unknown, maxLen = 500) => {
+      if (typeof v !== "string") return null;
+      const clean = v.replace(/[\r\n]+/g, " ").replace(/\s{2,}/g, " ").trim();
+      return clean ? clean.substring(0, maxLen) : null;
+    };
+    const isValidImage = (url: unknown) => {
+      if (typeof url !== "string") return false;
+      if (!url.startsWith("https://")) return false;
+      try {
+        const u = new URL(url);
+        return u.protocol === "https:";
+      } catch {
+        return false;
+      }
+    };
+
+    const name = sanitizeStr(p.nombre, 100);
     if (!name) continue;
-    const str = (v: unknown) =>
-      typeof v === "string" && v.trim() ? v.trim() : null;
+
     // Prefer an epoch timestamp (precise → "hace X min"); fall back to day-only fecha.
     const epoch =
       typeof p.updatedAt === "number"
@@ -311,15 +331,16 @@ export async function searchMissingPersonsApi(params: {
         : typeof p.createdAt === "number"
           ? p.createdAt
           : null;
+
     out.push({
-      id: str(p.id) ?? `dtv-${out.length}`,
+      id: sanitizeStr(p.id, 50) ?? `dtv-${out.length}`,
       name,
-      location: str(p.ubicacion),
-      description: str(p.descripcion),
-      photoUrl: str(p.foto),
+      location: sanitizeStr(p.ubicacion, 100),
+      description: sanitizeStr(p.descripcion, 500),
+      photoUrl: isValidImage(p.foto) ? (p.foto as string) : null,
       located: p.estado === "localizado",
-      date: epoch !== null ? new Date(epoch).toISOString() : str(p.fecha),
-      sourceUrl: "https://desaparecidosterremotovenezuela.com",
+      date: epoch !== null ? new Date(epoch).toISOString() : sanitizeStr(p.fecha, 50),
+      sourceUrl: process.env.MISSING_PERSONS_SOURCE_URL || "https://desaparecidosterremotovenezuela.com",
     });
   }
   return out;
