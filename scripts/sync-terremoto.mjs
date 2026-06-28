@@ -3,6 +3,7 @@
 // based on (source, external_id) unique constraint.
 
 import { readFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 
 const DRY = process.argv.includes("--dry");
 const API_URL = "https://api.terremotovenezuela.com/api/v1/reports";
@@ -26,7 +27,7 @@ async function fetchExternalReports() {
       
       const originalId = r.id || r._id;
       if (!originalId) {
-        console.warn("Skipping record without valid external ID:", r);
+        console.warn("Skipping record without valid external ID");
         continue;
       }
 
@@ -38,7 +39,6 @@ async function fetchExternalReports() {
         city: typeof r.city === 'string' ? r.city : null,
         latitude: lat,
         longitude: lng,
-        status: "OPEN",
         source: "terremotovenezuela.com",
         source_url: typeof r.url === 'string' ? r.url : `https://terremotovenezuela.com/`,
         dedup_key: `${lat.toFixed(4)},${lng.toFixed(4)}`,
@@ -77,13 +77,22 @@ const H = { apikey: KEY, Authorization: `Bearer ${KEY}`, "Content-Type": "applic
 
 if (!REST) { console.error("Missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SECRET_KEY"); process.exit(1); }
 
-// Perform UPSERT via resolution=merge-duplicates.
-// Requires unique constraint on (source, external_id).
-const ins = await fetch(`${REST}/damaged_reports?on_conflict=source,external_id`,
+// Perform UPSERT via internal RPC to enforce HUB contract (audit logging).
+const rpcPayload = {
+  p_table: "damaged_reports",
+  p_rows: rows,
+  p_partner: "11111111-1111-4111-8111-111111111111", // Default platform partner
+  p_source: "terremotovenezuela.com",
+  p_request_id: randomUUID(),
+  p_ip: "",
+  p_user_agent: "sync-terremoto-action"
+};
+
+const ins = await fetch(`${REST}/rpc/ingest_reports`,
   { 
     method: "POST", 
-    headers: { ...H, Prefer: "return=minimal, resolution=merge-duplicates" }, 
-    body: JSON.stringify(rows) 
+    headers: H, 
+    body: JSON.stringify(rpcPayload) 
   });
 if (!ins.ok) { console.error(`insert failed: ${ins.status} ${await ins.text()}`); process.exit(1); }
 
