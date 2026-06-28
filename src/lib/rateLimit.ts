@@ -68,9 +68,14 @@ export async function rateLimit(
 // Best-effort client identifier from proxy headers (Vercel sets these).
 export async function clientKey(scope: string): Promise<string> {
   const h = await headers();
+  // Vercel garantiza x-vercel-forwarded-for y x-real-ip.
+  // Tomamos el ÚLTIMO valor de x-forwarded-for (inyectado por el proxy final),
+  // en lugar del primero (que es controlable por el atacante).
+  const xff = h.get("x-forwarded-for");
   const ip =
-    h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    h.get("x-vercel-forwarded-for") ||
     h.get("x-real-ip") ||
+    (xff ? xff.split(",").pop()?.trim() : null) ||
     "unknown";
   return `${scope}:${ip}`;
 }
