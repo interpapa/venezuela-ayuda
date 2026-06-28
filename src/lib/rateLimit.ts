@@ -69,8 +69,8 @@ export async function rateLimit(
 export async function clientKey(scope: string): Promise<string> {
   const h = await headers();
   // Vercel garantiza x-vercel-forwarded-for y x-real-ip.
-  // Tomamos el ÚLTIMO valor de x-forwarded-for (inyectado por el proxy final),
-  // en lugar del primero (que es controlable por el atacante).
+  // Como respaldo, tomamos el ÚLTIMO valor de x-forwarded-for (inyectado por el proxy),
+  // que es más confiable que el primero (controlable por el atacante).
   const xff = h.get("x-forwarded-for");
   const ip =
     h.get("x-vercel-forwarded-for") ||

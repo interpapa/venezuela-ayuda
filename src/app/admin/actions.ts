@@ -64,61 +64,19 @@ export async function adminSignIn(_prev: AuthState, form: FormData): Promise<Aut
   redirect("/admin");
 }
 
+import { _adminSignUpLogic } from "@/lib/adminSignUp.mjs";
+
 // First-time: an allowlisted email sets its own password (created server-side
 // with email pre-confirmed, so there's no email round-trip).
 export async function adminSignUp(_prev: AuthState, form: FormData): Promise<AuthState> {
-  const startMs = Date.now();
-  const PADDING_MS = 1100; // Plan B: 1.1 segundos de tiempo constante.
-
-  // Helper para retornar con retraso constante
-  const padAndReturn = async (res: AuthState) => {
-    const elapsed = Date.now() - startMs;
-    if (elapsed < PADDING_MS) {
-      await new Promise((r) => setTimeout(r, PADDING_MS - elapsed));
-    }
-    return res;
-  };
-
-  if (!isSupabaseConfigured()) return padAndReturn({ error: "Servicio no disponible." });
-  const email = emailOf(form);
-  const password = String(form.get("password") || "");
-  if (!email || password.length < MIN_PASSWORD)
-    return padAndReturn({ error: `Usa una contraseña de al menos ${MIN_PASSWORD} caracteres.` });
-
-  const svc = getServerSupabase();
-  const key = await clientKey("login");
-  const { data: lockedFor } = await svc.rpc("login_guard", { p_key: key });
-  if (typeof lockedFor === "number" && lockedFor > 0) return padAndReturn({ error: lockedMsg(lockedFor) });
-
-  const GENERIC = "No se pudo crear la cuenta. Verifica los datos o contacta a un administrador.";
-
-  if (!(await isEmailAdmin(email))) {
-    await svc.rpc("login_record_failure", { p_key: key, ...LOGIN_LIMIT });
-    return padAndReturn({ error: GENERIC });
-  }
-
-  const { error: createErr } = await svc.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
+  return _adminSignUpLogic(form, {
+    isSupabaseConfigured,
+    clientKey,
+    getServerSupabase,
+    getAuthClient,
+    isEmailAdmin,
+    redirect
   });
-  if (createErr && !/already|registered|exists/i.test(createErr.message)) {
-    logWarn("admin_signup_create_failed", { scope: "admin.adminSignUp" }, createErr);
-    return padAndReturn({ error: GENERIC });
-  }
-
-  const auth = await getAuthClient();
-  const { error: signErr } = await auth.auth.signInWithPassword({ email, password });
-  if (signErr) {
-    if (!createErr) logError("admin_signup_signin_failed", signErr, { scope: "admin.adminSignUp" });
-    return padAndReturn({
-      error: createErr
-        ? "Ese correo ya tiene una cuenta. Usa Iniciar sesión."
-        : GENERIC,
-    });
-  }
-  await svc.rpc("login_clear", { p_key: key });
-  redirect("/admin"); // redirect lanza un error especial que Next.js captura, no podemos pad-earlo fácilmente, pero el atacante ya asumió la cuenta
 }
 
 export async function adminSignOut() {
