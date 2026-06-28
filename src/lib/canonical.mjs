@@ -23,6 +23,7 @@ export const URGENCY = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
 export const SEVERITY = ["CRACKS", "PARTIAL", "COLLAPSE_RISK", "COLLAPSED"];
 export const CHECKIN_STATUS = ["SAFE", "NEEDS_HELP", "LOOKING_FOR_SOMEONE"];
 export const REQUEST_STATUS = ["OPEN", "IN_PROGRESS", "RESOLVED"];
+export const HOSPITAL_STATUS = ["green", "yellow", "red", "unknown"];
 
 // Límites de longitud de inputs. Unión de los campos que necesitan el TS (UI:
 // itemName/maxItems/maxQty) y la ingesta (source_url/photo_url). Mantener acá

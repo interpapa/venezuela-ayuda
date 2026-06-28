@@ -14,6 +14,7 @@ const TYPE_MAP = {
   help_request: { view: "public_help_requests" },
   help_offer: { view: "public_help_offers" },
   damaged_building: { view: "public_damaged_reports" },
+  hospital_supply: { view: "public_hospital_supplies" },
 };
 
 export const REPORT_TYPES = Object.keys(TYPE_MAP);
@@ -28,6 +29,7 @@ export const VIEW_COLUMNS = {
   // propósito — es el email del admin verificador (interno), no debe salir al API
   // público ni al /history de terceros.
   public_damaged_reports: ["id", "place_name", "description", "severity", "city", "latitude", "longitude", "photo_url", "status", "created_at", "verified_at", "source", "source_url", "risk_level", "risk_priority"],
+  public_hospital_supplies: ["id", "place_name", "city", "latitude", "longitude", "category", "needs", "source", "stale_after", "verified_at", "updated_at", "created_at"],
 };
 
 export const DEFAULT_LIMIT = 100;
@@ -61,6 +63,7 @@ export const TABLE_FOR_TYPE = {
   help_request: "help_requests",
   help_offer: "help_offers",
   damaged_building: "damaged_reports",
+  hospital_supply: "hospital_supplies",
 };
 
 // tabla → vista pública (sin PII).
@@ -69,11 +72,12 @@ export const VIEW_FOR_TABLE = {
   help_requests: "public_help_requests",
   help_offers: "public_help_offers",
   damaged_reports: "public_damaged_reports",
+  hospital_supplies: "public_hospital_supplies",
 };
 
 // Tablas a probar para resolver un id, con su vista y columnas públicas (reusa
 // VIEW_COLUMNS → nunca incluye PII). Orden estable.
-export const RESOURCES = ["checkins", "help_requests", "help_offers", "damaged_reports"].map((table) => {
+export const RESOURCES = ["checkins", "help_requests", "help_offers", "damaged_reports", "hospital_supplies"].map((table) => {
   const view = VIEW_FOR_TABLE[table];
   return { table, view, columns: VIEW_COLUMNS[view] };
 });
@@ -84,7 +88,7 @@ export function typeForResource(table, row) {
   if (table === "checkins") {
     return row?.status === "LOOKING_FOR_SOMEONE" ? "missing_person" : "checkin";
   }
-  return { help_requests: "help_request", help_offers: "help_offer", damaged_reports: "damaged_building" }[table] ?? null;
+  return { help_requests: "help_request", help_offers: "help_offer", damaged_reports: "damaged_building", hospital_supplies: "hospital_supply" }[table] ?? null;
 }
 
 // limit crudo (string|number|null) → entero acotado [1, MAX_LIMIT], default DEFAULT_LIMIT.

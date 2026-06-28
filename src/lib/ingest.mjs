@@ -16,6 +16,7 @@ import {
   SEVERITY,
   CHECKIN_STATUS,
   REQUEST_STATUS,
+  HOSPITAL_STATUS,
   LIMITS,
 } from "./canonical.mjs";
 
@@ -137,10 +138,28 @@ export function buildRow(report, source) {
         },
       };
     }
+    case "hospital_supply": {
+      const name = clean(report.place_name, LIMITS.place_name);
+      if (!name) return err("place_name requerido");
+      return {
+        ok: true,
+        table: "hospital_supplies",
+        row: {
+          ...base, place_name: name,
+          city, latitude, longitude,
+          category: oneOf(report.category, HOSPITAL_STATUS, "unknown"),
+          needs: Array.isArray(report.needs) ? report.needs : [],
+          verified: typeof report.verified === "boolean" ? report.verified : false,
+          stale_after: report.stale_after || null,
+          verified_at: report.verified_at || null,
+          contact, // PRIVADO
+        },
+      };
+    }
     default:
       return err(`type desconocido: ${report.type}`);
   }
 }
 
 // Tablas válidas (para el upsert por lotes en la ruta).
-export const INGEST_TABLES = ["checkins", "help_requests", "help_offers", "damaged_reports"];
+export const INGEST_TABLES = ["checkins", "help_requests", "help_offers", "damaged_reports", "hospital_supplies"];

@@ -20,6 +20,7 @@ import {
   SEVERITY,
   CHECKIN_STATUS,
   REQUEST_STATUS,
+  HOSPITAL_STATUS,
   LIMITS,
 } from "./canonical.mjs";
 
@@ -75,6 +76,15 @@ const SPECS = {
     contact: { kind: "text", max: LIMITS.phone },
     risk_level: { kind: "enum", values: RISK_LEVELS },
     risk_priority: { kind: "bool" },
+    latitude: { kind: "coord" },
+    longitude: { kind: "coord" },
+  },
+  hospital_supplies: {
+    place_name: { kind: "text", max: LIMITS.place_name, required: true },
+    city: { kind: "text", max: LIMITS.city },
+    category: { kind: "enum", values: HOSPITAL_STATUS, required: true },
+    needs: { kind: "array" },
+    contact: { kind: "text", max: LIMITS.phone },
     latitude: { kind: "coord" },
     longitude: { kind: "coord" },
   },
@@ -134,6 +144,11 @@ export function buildPatch(type, body) {
         if (!Number.isFinite(n)) return err(`coordenada inválida para ${key}`);
         if (key === "latitude") { hasLat = true; lat = n; }
         else { hasLng = true; lng = n; }
+        break;
+      }
+      case "array": {
+        if (!Array.isArray(raw)) return err(`valor inválido para ${key}`);
+        patch[key] = raw;
         break;
       }
       default:
