@@ -24,7 +24,6 @@ const MODERATABLE = new Set(["checkins", "help_requests", "help_offers", "damage
 // Throttle durable del login (RPC 0021): hasta 8 intentos fallidos por IP en 15
 // min; al superarlo, bloqueo de 15 min. Compartido entre instancias serverless.
 const LOGIN_LIMIT = { p_limit: 8, p_window_sec: 900, p_lockout_sec: 900 } as const;
-const MIN_PASSWORD = 12;
 
 function emailOf(form: FormData) {
   return String(form.get("email") || "").trim().toLowerCase();
@@ -75,7 +74,9 @@ export async function adminSignUp(_prev: AuthState, form: FormData): Promise<Aut
     getServerSupabase,
     getAuthClient,
     isEmailAdmin,
-    redirect
+    redirect,
+    logWarn,
+    logError
   });
 }
 

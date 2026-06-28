@@ -27,9 +27,14 @@ export async function _adminSignUpLogic(form, deps) {
   if (!(await deps.isEmailAdmin(email))) {
     await svc.rpc("login_record_failure", { p_key: key, ...LOGIN_LIMIT });
     
-    // DUMMY HASH: Ejecutamos una verificación de coste fijo (bcrypt) contra 
-    // la base de datos simulando un login de un correo que no existe. 
-    // Esto iguala el coste de red y CPU para cerrar el oráculo de tiempo.
+    // DUMMY HASH: Ejecutamos las mismas 2 operaciones criptográficas y de red
+    // (createUser seguido de signInWithPassword) para garantizar que el tiempo
+    // de respuesta de la rama no autorizada sea indistinguible de la autorizada.
+    await svc.auth.admin.createUser({
+      email: "dummy-create@example.com",
+      password: "dummy-password-123!",
+      email_confirm: true,
+    });
     const auth = await deps.getAuthClient();
     await auth.auth.signInWithPassword({ email: "dummy-timing@example.com", password: "dummy-password-123!" });
     
@@ -49,12 +54,11 @@ export async function _adminSignUpLogic(form, deps) {
   const auth = await deps.getAuthClient();
   const { error: signErr } = await auth.auth.signInWithPassword({ email, password });
   if (signErr) {
+    // Si falla el inicio de sesión, siempre registramos el error interno (a menos 
+    // que sea porque la cuenta ya existía, lo cual es normal en este flujo mixto).
     if (!createErr) deps.logError("admin_signup_signin_failed", signErr, { scope: "admin.adminSignUp" });
-    return {
-      error: createErr
-        ? "Ese correo ya tiene una cuenta. Usa Iniciar sesión."
-        : GENERIC,
-    };
+    // Cierre del Oráculo de Contenido: siempre devolvemos GENERIC.
+    return { error: GENERIC };
   }
   await svc.rpc("login_clear", { p_key: key });
   deps.redirect("/admin");
