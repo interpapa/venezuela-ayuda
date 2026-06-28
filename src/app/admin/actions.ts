@@ -367,8 +367,8 @@ export async function addAdmin(email: string): Promise<Result> {
     return { ok: false, error: "Correo inválido." };
   const svc = getServerSupabase();
   const { error } = await svc
-    .from("admin_emails")
-    .upsert({ email: clean, added_by: me }, { onConflict: "email" });
+    .from<any, any>("user_roles")
+    .upsert({ user_email: clean, role_key: "admin", granted_by: me }, { onConflict: "user_email, role_key" });
   if (error) {
     logError("admin_add_failed", error, { scope: "admin.addAdmin" });
     return { ok: false, error: "No se pudo agregar." };
@@ -387,7 +387,7 @@ export async function removeAdmin(email: string): Promise<Result> {
   const clean = email.trim().toLowerCase();
   if (clean === me) return { ok: false, error: "No puedes quitarte a ti mismo." };
   const svc = getServerSupabase();
-  const { error } = await svc.from("admin_emails").delete().eq("email", clean);
+  const { error } = await svc.from<any, any>("user_roles").delete().eq("user_email", clean);
   if (error) {
     logError("admin_remove_failed", error, { scope: "admin.removeAdmin" });
     return { ok: false, error: "No se pudo quitar." };
@@ -396,9 +396,7 @@ export async function removeAdmin(email: string): Promise<Result> {
   return { ok: true };
 }
 
-// Promote/demote another admin to super-admin. Super-admin only; can't demote
-// yourself (avoids locking out the last super-admin by accident).
-export async function setSuperAdmin(email: string, value: boolean): Promise<Result> {
+export async function setRole(email: string, role: string, value: boolean): Promise<Result> {
   let me: string;
   try {
     me = await requireSuperAdmin();
@@ -406,15 +404,26 @@ export async function setSuperAdmin(email: string, value: boolean): Promise<Resu
     return { ok: false, error: "No autorizado." };
   }
   const clean = email.trim().toLowerCase();
-  if (clean === me && !value)
+  if (clean === me && role === "super_admin" && !value)
     return { ok: false, error: "No puedes quitarte el rol de super-admin a ti mismo." };
+  
   const svc = getServerSupabase();
-  const { error } = await svc
-    .from("admin_emails")
-    .update({ is_super_admin: value })
-    .eq("email", clean);
+  let error;
+  if (value) {
+    const res = await svc
+      .from<any, any>("user_roles")
+      .upsert({ user_email: clean, role_key: role, granted_by: me }, { onConflict: "user_email, role_key" });
+    error = res.error;
+  } else {
+    const res = await svc
+      .from<any, any>("user_roles")
+      .delete()
+      .match({ user_email: clean, role_key: role });
+    error = res.error;
+  }
+
   if (error) {
-    logError("admin_set_super_failed", error, { scope: "admin.setSuperAdmin" });
+    logError("admin_set_role_failed", error, { scope: "admin.setRole" });
     return { ok: false, error: "No se pudo actualizar el rol." };
   }
   revalidatePath("/admin/admins");

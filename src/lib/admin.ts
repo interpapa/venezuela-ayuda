@@ -16,25 +16,15 @@ export async function getAdminEmail(): Promise<string | null> {
 }
 
 export async function isEmailAdmin(email: string): Promise<boolean> {
-  const svc = getServerSupabase();
-  const { data } = await svc
-    .from("admin_emails")
-    .select("email")
-    .eq("email", email.toLowerCase())
-    .maybeSingle();
-  return Boolean(data);
+  const { hasPermission } = await import("@/lib/rbac");
+  return hasPermission(email, "admin.access");
 }
 
 // True only for super-admins (admin_emails.is_super_admin). Super-admins can
 // create/remove admins, issue API keys, and run the batch ingest.
 export async function isSuperAdmin(email: string): Promise<boolean> {
-  const svc = getServerSupabase();
-  const { data } = await svc
-    .from("admin_emails")
-    .select("is_super_admin")
-    .eq("email", email.toLowerCase())
-    .maybeSingle();
-  return Boolean(data?.is_super_admin);
+  const { hasPermission } = await import("@/lib/rbac");
+  return hasPermission(email, "partners.manage");
 }
 
 // One round-trip for the logged-in admin's identity + tier. Returns null if not
@@ -48,18 +38,37 @@ export async function getAdminSession(): Promise<{ email: string; isSuper: boole
 export interface AdminRow {
   email: string;
   added_by: string | null;
-  is_super_admin: boolean;
+  roles: string[];
   created_at: string;
 }
 
 export async function listAdmins(): Promise<AdminRow[]> {
   const svc = getServerSupabase();
   const { data } = await svc
-    .from("admin_emails")
-    .select("email,added_by,is_super_admin,created_at")
-    .order("is_super_admin", { ascending: false })
+    .from<any, any>("user_roles")
+    .select("user_email, role_key, granted_by, created_at")
     .order("created_at", { ascending: true });
-  return (data ?? []) as AdminRow[];
+
+  const adminsMap = new Map<string, AdminRow>();
+  for (const row of (data as any[]) || []) {
+    if (!adminsMap.has(row.user_email)) {
+      adminsMap.set(row.user_email, {
+        email: row.user_email,
+        added_by: row.granted_by,
+        roles: [],
+        created_at: row.created_at,
+      });
+    }
+    adminsMap.get(row.user_email)!.roles.push(row.role_key);
+  }
+
+  return Array.from(adminsMap.values()).sort((a, b) => {
+    const aIsSuper = a.roles.includes("super_admin");
+    const bIsSuper = b.roles.includes("super_admin");
+    if (aIsSuper && !bIsSuper) return -1;
+    if (!aIsSuper && bIsSuper) return 1;
+    return a.created_at < b.created_at ? -1 : 1;
+  });
 }
 
 export interface AdminDamagedRow {

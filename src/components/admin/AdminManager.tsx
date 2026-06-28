@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { addAdmin, removeAdmin, setSuperAdmin } from "@/app/admin/actions";
+import { addAdmin, removeAdmin, setRole } from "@/app/admin/actions";
 import { fullDate } from "@/lib/format";
 import type { AdminRow } from "@/lib/admin";
 
@@ -40,6 +40,13 @@ export default function AdminManager({
     run(() => addAdmin(clean));
   }
 
+  const ROLES = [
+    { key: "super_admin", label: "Super Admin", color: "violet" },
+    { key: "admin", label: "Admin", color: "blue" },
+    { key: "reviewer", label: "Revisor", color: "emerald" },
+    { key: "moderator", label: "Moderador", color: "amber" },
+  ];
+
   return (
     <div className="space-y-5">
       <form
@@ -48,7 +55,7 @@ export default function AdminManager({
       >
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium text-[#14212e]">
-            Agregar administrador
+            Agregar usuario (Otorga rol Admin)
           </span>
           <div className="flex flex-wrap gap-2">
             <input
@@ -80,40 +87,48 @@ export default function AdminManager({
           return (
             <li
               key={admin.email}
-              className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#e6ecf2] bg-white p-4"
+              className="flex flex-col gap-3 rounded-2xl border border-[#e6ecf2] bg-white p-4 sm:flex-row sm:items-start"
             >
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 truncate text-sm font-semibold text-[#14212e]">
-                  {admin.email}
-                  {admin.is_super_admin && (
-                    <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">
-                      super
-                    </span>
-                  )}
+                <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#14212e]">
+                  <span className="truncate">{admin.email}</span>
                   {isMe && (
                     <span className="text-xs font-normal text-[#8190a0]">(tú)</span>
                   )}
                 </p>
-                <p className="mt-0.5 text-xs text-[#8190a0]">
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {ROLES.map((r) => {
+                    const hasRole = admin.roles.includes(r.key);
+                    const disabled = pending || (isMe && r.key === "super_admin");
+                    return (
+                      <button
+                        key={r.key}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => run(() => setRole(admin.email, r.key, !hasRole))}
+                        className={`rounded-lg border px-2 py-1 text-xs font-medium transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${
+                          hasRole
+                            ? `border-${r.color}-200 bg-${r.color}-100 text-${r.color}-800`
+                            : "border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100"
+                        }`}
+                      >
+                        {hasRole ? `✓ ${r.label}` : `+ ${r.label}`}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs text-[#8190a0]">
                   Agregado {fullDate(admin.created_at)}
                   {admin.added_by ? ` · por ${admin.added_by}` : ""}
                 </p>
               </div>
               <button
                 type="button"
-                disabled={pending || (isMe && admin.is_super_admin)}
-                onClick={() => run(() => setSuperAdmin(admin.email, !admin.is_super_admin))}
-                className="shrink-0 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-medium text-violet-700 transition hover:bg-violet-100 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {admin.is_super_admin ? "Quitar super" : "Hacer super"}
-              </button>
-              <button
-                type="button"
                 disabled={pending || isMe}
                 onClick={() => run(() => removeAdmin(admin.email))}
-                className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-3 shrink-0 self-start rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 sm:mt-0"
               >
-                Quitar
+                Remover todos
               </button>
             </li>
           );
